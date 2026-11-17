@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-11-16",
+  "change": {
+    "id": "CHG-103",
+    "affected_services": [
+      "payments-api"
+    ],
+    "type": "update",
+    "rollback_ref": "runbooks/payments.md"
+  },
+  "services": [
+    {
+      "id": "payments-api",
+      "criticality": "critical",
+      "dependencies": [],
+      "replicas": 3
+    }
+  ]
+}

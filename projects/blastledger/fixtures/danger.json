@@ -1,0 +1,39 @@
+{
+  "as_of": "2026-11-16",
+  "change": {
+    "id": "CHG-101",
+    "affected_services": [
+      "gateway-proxy"
+    ],
+    "type": "router-upgrade",
+    "rollback_ref": ""
+  },
+  "services": [
+    {
+      "id": "gateway-proxy",
+      "criticality": "high",
+      "dependencies": [],
+      "replicas": 2,
+      "max_rps": 1000,
+      "current_rps": 880,
+      "required_failover_rps": 250,
+      "capacity_observed_at": "2026-11-16"
+    },
+    {
+      "id": "checkout-api",
+      "criticality": "critical",
+      "dependencies": [
+        "gateway-proxy"
+      ],
+      "replicas": 3
+    },
+    {
+      "id": "orders-api",
+      "criticality": "high",
+      "dependencies": [
+        "gateway-proxy"
+      ],
+      "replicas": 3
+    }
+  ]
+}
