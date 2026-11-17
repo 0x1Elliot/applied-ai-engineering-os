@@ -1,0 +1,23 @@
+{
+  "as_of": "2026-11-16",
+  "change": {
+    "id": "CHG-102",
+    "affected_services": [
+      "search-api"
+    ],
+    "type": "canary",
+    "rollback_ref": "runbooks/search-rollback.md"
+  },
+  "services": [
+    {
+      "id": "search-api",
+      "criticality": "low",
+      "dependencies": [],
+      "replicas": 3,
+      "max_rps": 1000,
+      "current_rps": 200,
+      "required_failover_rps": 300,
+      "capacity_observed_at": "2026-11-16"
+    }
+  ]
+}
