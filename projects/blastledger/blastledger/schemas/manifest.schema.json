@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://blastledger.example/schemas/manifest.schema.json",
+  "title": "BlastLedger PR integration manifest v1",
+  "type": "object", "additionalProperties": false,
+  "required": ["services", "path_rules"],
+  "properties": {
+    "services": {"$ref": "assessment.schema.json#/properties/services"},
+    "path_rules": {
+      "type": "object", "minProperties": 1, "maxProperties": 500,
+      "propertyNames": {"$ref": "assessment.schema.json#/$defs/serviceId"},
+      "additionalProperties": {"type": "array", "minItems": 1, "maxItems": 100, "uniqueItems": true, "items": {"type": "string", "minLength": 1, "maxLength": 240}}
+    },
+    "change_defaults": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"rollback_ref": {"type": ["string", "null"], "maxLength": 500}}
+    }
+  }
+}

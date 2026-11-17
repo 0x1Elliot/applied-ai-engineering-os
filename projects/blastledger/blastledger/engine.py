@@ -1,7 +1,7 @@
-"""Read-only, deterministic dependency blast-radius analysis.
+"""Pure, deterministic read-only graph and declared-capacity risk engine.
 
-No network, filesystem writes, customer credentials, or LLM calls.
-The output is an engineering decision aid, not outage prediction.
+No network calls, I/O, credential use, LLM calls or mutating operations.
+Results are advisory, not outage predictions or deployment approvals.
 """
 from __future__ import annotations
 
@@ -11,160 +11,104 @@ from hashlib import sha256
 import json
 from typing import Any
 
+from .contract import ContractError, validate_assessment
+
 
 class InputError(ValueError):
-    """Invalid assessment input. Safe to show to calling engineer."""
-
-
-def _number(value: Any, name: str) -> float:
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise InputError(f"{name} must be a nonnegative number")
-    import math
-    if not math.isfinite(value) or value < 0:
-        raise InputError(f"{name} must be a finite nonnegative number")
-    return float(value)
-
-
-def _validate(data: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], dict[str, Any], date]:
-    if not isinstance(data, dict) or set(data) - {"services", "change", "as_of"}:
-        raise InputError("Input must contain only services, change, as_of")
-    services = data.get("services")
-    change = data.get("change")
-    if not isinstance(services, list) or not (1 <= len(services) <= 500):
-        raise InputError("services must be a list of 1..500 service records")
-    if not isinstance(change, dict):
-        raise InputError("change must be an object")
-    try:
-        as_of = date.fromisoformat(data["as_of"])
-    except (KeyError, TypeError, ValueError) as exc:
-        raise InputError("as_of must be an ISO date YYYY-MM-DD") from exc
-    mapped: dict[str, dict[str, Any]] = {}
-    for item in services:
-        if not isinstance(item, dict):
-            raise InputError("Each service must be an object")
-        sid = item.get("id")
-        if not isinstance(sid, str) or not sid or len(sid) > 128:
-            raise InputError("Service ID must be a nonempty string <=128 characters")
-        if sid in mapped:
-            raise InputError(f"Duplicate service ID: {sid}")
-        deps = item.get("dependencies", [])
-        if not isinstance(deps, list) or any(not isinstance(x, str) for x in deps):
-            raise InputError(f"Invalid dependency list: {sid}")
-        if item.get("criticality") not in ("low", "high", "critical"):
-            raise InputError(f"Invalid criticality: {sid}")
-        if len(set(deps)) != len(deps):
-            raise InputError(f"Duplicate dependencies: {sid}")
-        for field in ("max_rps", "current_rps", "required_failover_rps"):
-            if field in item and item[field] is not None:
-                _number(item[field], f"{sid}.{field}")
-        replicas = item.get("replicas")
-        if replicas is not None and (type(replicas) is not int or replicas < 0):
-            raise InputError(f"{sid}.replicas must be a nonnegative integer")
-        mapped[sid] = item
-    for sid, item in mapped.items():
-        for dep in item.get("dependencies", []):
-            if dep not in mapped:
-                raise InputError(f"Dangling dependency from {sid}: {dep}")
-    ids = change.get("affected_services")
-    if not isinstance(ids, list) or not ids or any(x not in mapped for x in ids):
-        raise InputError("affected_services must be a nonempty list of existing service IDs")
-    if not isinstance(change.get("id"), str) or not change["id"]:
-        raise InputError("change.id must be a nonempty string")
-    return mapped, change, as_of
+    """Input contract or semantic error safe for a review tool to display."""
 
 
 def _impacted(services: dict[str, dict[str, Any]], changed: list[str]) -> list[str]:
-    """Return changed services + all direct/indirect callers in stable order; cycles safe."""
+    """Graph edges service -> dependency; reverse them to find dependent callers."""
     callers: dict[str, set[str]] = defaultdict(set)
-    for sid, s in services.items():
-        for dep in s.get("dependencies", []):
-            callers[dep].add(sid)
-    q = deque(sorted(set(changed)))
+    for sid, service in services.items():
+        for dependency in service["dependencies"]:
+            callers[dependency].add(sid)
+    pending = deque(sorted(set(changed)))
     visited: set[str] = set()
-    while q:
-        sid = q.popleft()
+    while pending:
+        sid = pending.popleft()
         if sid in visited:
             continue
         visited.add(sid)
-        q.extend(sorted(callers[sid] - visited))
+        pending.extend(sorted(callers[sid] - visited))
     return sorted(visited)
 
 
 def assess(data: dict[str, Any]) -> dict[str, Any]:
-    """Deterministic advisory result: PASS, REVIEW, UNKNOWN, BLOCK-RECOMMENDED.
-
-    Values are declared from a fixture or a customer service manifest, not telemetry.
-    PASS never means the planned change is guaranteed safe.
-    """
-    services, change, as_of = _validate(data)
+    """Return evidence-backed advice. Identical JSON input yields identical output."""
+    try:
+        validate_assessment(data)
+    except ContractError as exc:
+        raise InputError(str(exc)) from exc
+    services = {s["id"]: s for s in data["services"]}
+    change = data["change"]
     changed = sorted(set(change["affected_services"]))
     impacted = _impacted(services, changed)
+    as_of = date.fromisoformat(data["as_of"])
     findings: list[dict[str, Any]] = []
 
-    def emit(rule: str, severity: str, sid: str, detail: str, evidence: dict[str, Any]):
+    def emit(rule: str, severity: str, sid: str, detail: str, evidence: dict[str, Any]) -> None:
         findings.append({"rule_id": rule, "severity": severity, "service_id": sid,
                          "detail": detail, "evidence": evidence})
 
     for sid in changed:
-        s = services[sid]
-        dependents = [x for x in impacted if x != sid]
-        critical = [x for x in dependents if services[x]["criticality"] == "critical"]
+        service = services[sid]
+        critical = [x for x in impacted if x != sid and services[x]["criticality"] == "critical"]
         if critical:
             emit("CRITICAL_DEPENDENTS", "REVIEW", sid,
-                 "Changed component is upstream of critical service(s). Inspect blast radius.",
+                 "Changed component is upstream of critical service(s); assess blast radius.",
                  {"critical_dependents": critical})
-        replica_count = s.get("replicas")
-        if replica_count is None:
-            emit("REPLICA_UNKNOWN", "UNKNOWN", sid, "Redundancy information is missing.", {})
-        elif replica_count < 2 and s["criticality"] in ("high", "critical"):
-            sev = "BLOCK" if s["criticality"] == "critical" else "REVIEW"
-            emit("INSUFFICIENT_REPLICAS", sev, sid,
-                 "Service has fewer than two declared replicas.",
-                 {"replicas": replica_count, "criticality": s["criticality"]})
-        required = ("max_rps", "current_rps", "required_failover_rps")
-        missing = [f for f in required if s.get(f) is None]
-        observed = s.get("capacity_observed_at")
-        if missing or not observed:
+
+        replicas = service.get("replicas")
+        if replicas is None:
+            emit("REPLICA_UNKNOWN", "UNKNOWN", sid,
+                 "Redundancy information is missing.", {"replicas": None})
+        elif replicas < 2 and service["criticality"] in ("critical", "high"):
+            emit("INSUFFICIENT_REPLICAS", "BLOCK" if service["criticality"] == "critical" else "REVIEW", sid,
+                 "Fewer than two declared replicas for a high-impact component.",
+                 {"replicas": replicas, "criticality": service["criticality"]})
+
+        capacity_fields = ("max_rps", "current_rps", "required_failover_rps")
+        missing = [name for name in capacity_fields if service.get(name) is None]
+        if service.get("capacity_observed_at") is None:
+            missing.append("capacity_observed_at")
+        if missing:
             emit("CAPACITY_UNKNOWN", "UNKNOWN", sid,
-                 "Capacity or evidence timestamp missing; cannot infer a safe release.",
-                 {"missing_fields": missing + (["capacity_observed_at"] if not observed else [])})
+                 "Capacity data is incomplete; no safe-release inference is possible.",
+                 {"missing_fields": missing})
         else:
-            try:
-                age = (as_of - date.fromisoformat(observed)).days
-            except (ValueError, TypeError) as exc:
-                raise InputError(f"{sid}.capacity_observed_at is not an ISO date") from exc
-            if age < 0 or age > 7:
+            observed = date.fromisoformat(service["capacity_observed_at"])
+            age_days = (as_of - observed).days
+            if age_days < 0 or age_days > 7:
                 emit("CAPACITY_STALE", "UNKNOWN", sid,
-                     "Capacity observation is in the future or more than 7 days old.",
-                     {"age_days": age, "freshness_limit_days": 7})
+                     "Capacity evidence is future-dated or more than 7 days old.",
+                     {"age_days": age_days, "freshness_limit_days": 7})
             else:
-                maximum = _number(s["max_rps"], f"{sid}.max_rps")
-                current = _number(s["current_rps"], f"{sid}.current_rps")
-                required_failover = _number(s["required_failover_rps"], f"{sid}.required_failover_rps")
-                spare = round(maximum - current, 4)
-                if spare < required_failover:
+                max_rps = float(service["max_rps"])
+                current_rps = float(service["current_rps"])
+                required = float(service["required_failover_rps"])
+                spare = round(max_rps - current_rps, 4)
+                if spare < required:
                     emit("LOW_FAILOVER_HEADROOM", "BLOCK", sid,
-                         "Declared spare capacity is below required failover capacity.",
-                         {"max_rps": maximum, "current_rps": current,
-                          "spare_rps": spare, "required_failover_rps": required_failover,
-                          "capacity_observed_at": observed})
+                         "Declared spare throughput is below required failover load.",
+                         {"max_rps": max_rps, "current_rps": current_rps, "spare_rps": spare,
+                          "required_failover_rps": required,
+                          "capacity_observed_at": service["capacity_observed_at"]})
     rollback = change.get("rollback_ref")
     if not isinstance(rollback, str) or not rollback.strip():
         emit("ROLLBACK_MISSING", "REVIEW", ",".join(changed),
-             "Rollback/runbook evidence is missing.", {"rollback_ref": None})
+             "Rollback or runbook evidence is missing.", {"rollback_ref": None})
 
-    severities = {x["severity"] for x in findings}
-    if "BLOCK" in severities:
-        verdict = "BLOCK-RECOMMENDED"
-    elif "UNKNOWN" in severities:
-        verdict = "UNKNOWN"
-    elif "REVIEW" in severities:
-        verdict = "REVIEW"
-    else:
-        verdict = "PASS"
-    normalized = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
-    findings.sort(key=lambda x: (x["severity"], x["rule_id"], x["service_id"]))
-    return {"change_id": change["id"], "assessment_id": sha256(normalized.encode()).hexdigest()[:20],
-            "as_of": as_of.isoformat(), "changed_services": changed,
-            "impacted_services": impacted, "verdict": verdict, "findings": findings,
-            "disclaimer": "Advisory only. Manifest data is unverified. PASS is not a safety guarantee."}
+    severity_set = {f["severity"] for f in findings}
+    verdict = ("BLOCK-RECOMMENDED" if "BLOCK" in severity_set else
+               "UNKNOWN" if "UNKNOWN" in severity_set else
+               "REVIEW" if "REVIEW" in severity_set else "PASS")
+    canonical = json.dumps(data, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)
+    digest = sha256(canonical.encode("utf-8")).hexdigest()
+    findings.sort(key=lambda f: (f["severity"], f["rule_id"], f["service_id"]))
+    return {"assessment_id": digest[:20], "input_hash": digest,
+            "ruleset_version": "1.0.0", "change_id": change["id"], "as_of": as_of.isoformat(),
+            "changed_services": changed, "impacted_services": impacted,
+            "verdict": verdict, "findings": findings,
+            "disclaimer": "Advisory only; user-declared topology and metrics are unverified. PASS is not a safety guarantee."}

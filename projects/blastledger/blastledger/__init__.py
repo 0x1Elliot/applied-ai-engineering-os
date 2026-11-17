@@ -1,4 +1,4 @@
-"""BlastLedger deterministic change-risk analysis, v0.1."""
-from .engine import assess, InputError
+"""BlastLedger deterministic, evidence-linked change review engine."""
+from .engine import InputError, assess
 
-__all__ = ["assess", "InputError"]
+__all__ = ["InputError", "assess"]

@@ -1,23 +1,24 @@
-"""CLI: python -m blastledger assess fixtures/danger.json"""
+"""Command line: python -m blastledger assess fixtures/danger.json"""
 import argparse
 import json
 from pathlib import Path
 import sys
-from .engine import assess, InputError
+
+from .engine import InputError, assess
 
 
-def main():
-    parser = argparse.ArgumentParser(description="BlastLedger change-risk assessment (read-only)")
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="Read-only BlastLedger change risk evaluation")
     parser.add_argument("command", choices=["assess"])
-    parser.add_argument("fixture", type=Path, help="local JSON service manifest and change")
-    args = parser.parse_args()
+    parser.add_argument("fixture", type=Path)
+    args = parser.parse_args(argv)
     try:
-        if args.fixture.stat().st_size > 2_000_000:
-            raise InputError("Input larger than 2MB")
-        data = json.loads(args.fixture.read_text(encoding="utf-8"))
-        print(json.dumps(assess(data), indent=2, sort_keys=True))
-    except (InputError, OSError, json.JSONDecodeError) as exc:
-        print(f"Input error: {exc}", file=sys.stderr)
+        if args.fixture.stat().st_size > 1024 * 1024:
+            raise InputError("Maximum input file size is 1 MiB")
+        payload = json.loads(args.fixture.read_text(encoding="utf-8"))
+        print(json.dumps(assess(payload), indent=2, sort_keys=True))
+    except (OSError, json.JSONDecodeError, InputError) as exc:
+        print(f"Invalid assessment request: {exc}", file=sys.stderr)
         return 2
     return 0
 
