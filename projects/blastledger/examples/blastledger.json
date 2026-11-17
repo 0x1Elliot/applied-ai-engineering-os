@@ -1,0 +1,11 @@
+{
+  "services": [
+    {"id": "web", "criticality": "high", "dependencies": ["gateway"], "replicas": null},
+    {"id": "gateway", "criticality": "critical", "dependencies": [], "replicas": null}
+  ],
+  "path_rules": {
+    "web": ["app/**", "index.html"],
+    "gateway": ["projects/blastledger/blastledger/**", ".github/workflows/blastledger.yml"]
+  },
+  "change_defaults": {"rollback_ref": null}
+}
