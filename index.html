@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Applied AI Engineering OS — Evidence, not XP</title>
+<meta name="description" content="A personal, evidence-based training environment for progressing from beginner to entry/mid-level Applied AI Engineering capability.">
+<style>
+:root{color-scheme:dark;--bg:#090b0d;--panel:#0e1214;--line:#252a2c;--line2:#303638;--text:#e8ece9;--mute:#9aa39f;--dim:#78827d;--accent:#d9e1dc;--ok:#7fd1a0;--warn:#e0b45a}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){color-scheme:light;--bg:#f5f6f4;--panel:#fff;--line:#dcdfdc;--line2:#c9cec9;--text:#14181a;--mute:#4a524e;--dim:#6b746f;--accent:#14181a;--ok:#1d7a47;--warn:#8a6414}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,sans-serif;line-height:1.6;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 5vw}
+header.top{display:flex;justify-content:space-between;align-items:center;padding:22px 0;border-bottom:1px solid var(--line)}
+.brand{display:flex;gap:12px;align-items:center;font-weight:700;letter-spacing:-.3px}
+.mark{border:1px solid var(--dim);width:38px;height:38px;display:grid;place-items:center;font-weight:800;letter-spacing:-1px}
+.top a.cta{font-size:13px}
+a{color:inherit}
+.btn{display:inline-block;background:var(--accent);color:var(--bg);padding:13px 22px;font-weight:700;font-size:14px;letter-spacing:.5px;text-decoration:none;border:0;cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2)}
+.eyebrow{font-size:11px;letter-spacing:2px;color:var(--dim);font-weight:800;text-transform:uppercase;margin:0}
+h1{font-size:clamp(34px,7vw,64px);line-height:1.04;letter-spacing:-2px;margin:14px 0 18px}
+h2{font-size:clamp(26px,4.5vw,38px);letter-spacing:-1px;margin:10px 0 14px;line-height:1.15}
+h3{margin:0 0 6px;font-size:16px}
+p{color:var(--mute);margin:0 0 14px}
+section{padding:72px 0;border-bottom:1px solid var(--line)}
+.hero{padding:80px 0 64px}
+.hero p.lead{font-size:18px;max-width:720px}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.stage{font:12px ui-monospace,SFMono-Regular,monospace;color:var(--dim);margin-top:34px}
+.stage span{margin:0 8px;color:var(--line2)}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:28px}
+.card{border:1px solid var(--line2);background:var(--panel);padding:22px}
+.card .n{font:12px ui-monospace,monospace;color:var(--dim)}
+.card p{margin:6px 0 0;font-size:14.5px}
+.tag{display:inline-block;font:10px ui-monospace,monospace;letter-spacing:1px;padding:3px 7px;border:1px solid var(--line2);color:var(--dim);margin-top:12px}
+.tag.on{color:var(--ok);border-color:var(--ok)}
+.ladder{display:flex;flex-wrap:wrap;gap:0;margin-top:26px;border:1px solid var(--line2)}
+.ladder div{flex:1 1 150px;padding:16px;border-right:1px solid var(--line2);background:var(--panel)}
+.ladder div:last-child{border-right:0}
+.ladder b{display:block;font:700 13px ui-monospace,monospace;letter-spacing:1px}
+.ladder span{font-size:13px;color:var(--mute)}
+.two{display:grid;gap:28px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));align-items:start}
+.vs{width:100%;border-collapse:collapse;margin-top:24px;font-size:14px}
+.vs th,.vs td{text-align:left;padding:12px 14px;border:1px solid var(--line2);vertical-align:top}
+.vs th{color:var(--dim);font:700 11px ui-monospace,monospace;letter-spacing:1px;background:var(--panel)}
+.vs td:last-child{color:var(--text)}
+.tw{overflow-x:auto}
+.skill{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.skill b{font:700 11px ui-monospace,monospace;letter-spacing:1px;color:var(--dim)}
+.skill b.build{color:var(--ok)}.skill b.explain{color:var(--warn)}
+form{border:1px solid var(--line2);background:var(--panel);padding:26px;display:grid;gap:16px}
+label{font-size:12px;letter-spacing:1px;color:var(--dim);font-weight:700;display:grid;gap:6px;text-transform:uppercase}
+input,select,textarea{background:var(--bg);color:var(--text);border:1px solid var(--line2);padding:12px;font:15px inherit;font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:1px}
+.note{font-size:12.5px;color:var(--dim)}
+footer{padding:36px 0 48px;color:var(--dim);font-size:13px}
+.status{display:none;margin-top:4px;color:var(--ok);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand"><div class="mark">AE</div><span>Applied AI Engineering OS</span></div>
+  <a class="btn ghost cta" href="#demo">Request a demo</a>
+</header>
+
+<section class="hero">
+  <p class="eyebrow">v0.1 · Foundations</p>
+  <h1>Skill you can prove,<br>not courses you finished.</h1>
+  <p class="lead">A personal, evidence-based training environment for progressing from beginner to entry/mid-level Applied AI Engineering capability. Every skill advances only when you show the work.</p>
+  <div class="row">
+    <a class="btn" href="#demo">Request a demo →</a>
+    <a class="btn ghost" href="#problem">Why this exists</a>
+  </div>
+  <div class="stage">BEGINNER <span>→</span> ENTRY <span>→</span> MID</div>
+</section>
+
+<section id="problem">
+  <p class="eyebrow">The problem</p>
+  <h2>Breaking into Applied AI is a sequencing and proof problem, not an information problem.</h2>
+  <div class="grid">
+    <div class="card"><div class="n">01</div><h3>Content without order</h3><p>Tutorials, papers, and courses are abundant. What to learn <em>next</em>, and what must come first, is left to guesswork. Papers get opened before their prerequisites are understood.</p></div>
+    <div class="card"><div class="n">02</div><h3>Progress without evidence</h3><p>Completion bars and XP measure time spent, not capability. Watching a video about agents is not the ability to debug one at 2 a.m.</p></div>
+    <div class="card"><div class="n">03</div><h3>Skills hiring teams actually test</h3><p>Applied AI roles probe Python, debugging, agents, evals, and reliability. Self-taught learners rarely get structured practice on failure modes and production concerns.</p></div>
+    <div class="card"><div class="n">04</div><h3>A news firehose</h3><p>AI moves daily. Without a filter tied to your current skills, "staying current" becomes another feed that crowds out building.</p></div>
+  </div>
+</section>
+
+<section id="solution">
+  <p class="eyebrow">The solution</p>
+  <h2>A mission-control system that sequences the work and demands the proof.</h2>
+  <p style="max-width:720px">Applied AI Engineering OS turns the path from beginner to mid-level into one environment: today's primary session, six training containers, an evidence-based skill graph, a gated research path, and intelligence filtered to what you're actively learning.</p>
+
+  <table class="vs tw" style="display:table">
+    <thead><tr><th>TYPICAL LEARNING</th><th>APPLIED AI ENGINEERING OS</th></tr></thead>
+    <tbody>
+      <tr><td>Pick a course or follow a feed</td><td>One primary session per day, with a "Why now?" tied to what unlocks next</td></tr>
+      <tr><td>XP, streaks, completion</td><td>Skill Graph: "Evidence, not XP"</td></tr>
+      <tr><td>Read any paper that's trending</td><td>Research path gated by prerequisites (e.g. "WAIT — 3/4 prerequisites ready")</td></tr>
+      <tr><td>Generic news feed</td><td>Live Intelligence: developments mapped to your active skills</td></tr>
+      <tr><td>Vague career goal</td><td>Explicit role targets and the skills each demands</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="how">
+  <p class="eyebrow">How progression works</p>
+  <h2>Five stages. You can't skip one.</h2>
+  <div class="ladder">
+    <div><b>SEEN</b><span>Encountered the concept</span></div>
+    <div><b>EXPLAIN</b><span>Teach it back, trace execution, predict outputs</span></div>
+    <div><b>BUILD</b><span>Write it independently</span></div>
+    <div><b>DEBUG</b><span>Diagnose a broken implementation</span></div>
+    <div><b>SHIP</b><span>Deliver it where it runs for real</span></div>
+  </div>
+  <div class="two" style="margin-top:34px">
+    <div>
+      <h3>Today's primary session (v0.1 example)</h3>
+      <p><strong style="color:var(--text)">Python: Functions &amp; Return Values</strong> · 60 min · Guided mode · Foundations. Learn to trace execution, predict outputs, write functions independently, then diagnose a broken implementation.</p>
+      <p><strong style="color:var(--text)">Why now:</strong> required before API architecture.</p>
+    </div>
+    <div>
+      <h3>Skill Graph snapshot</h3>
+      <div class="skill"><span>Python</span><b class="build">BUILD</b></div>
+      <div class="skill"><span>APIs</span><b class="build">BUILD</b></div>
+      <div class="skill"><span>LLM Systems</span><b class="build">BUILD</b></div>
+      <div class="skill"><span>Debugging</span><b class="explain">EXPLAIN</b></div>
+      <div class="skill"><span>Databases · Agents · Evaluation · Containers</span><b>SEEN</b></div>
+    </div>
+  </div>
+</section>
+
+<section id="labs">
+  <p class="eyebrow">Training containers</p>
+  <h2>Six labs, from fundamentals to production.</h2>
+  <div class="grid">
+    <div class="card"><div class="n">01</div><h3>Foundations</h3><p>Python · CS · ML · Transformers</p><span class="tag on">AVAILABLE</span></div>
+    <div class="card"><div class="n">02</div><h3>Build Lab</h3><p>APIs · databases · RAG · systems</p><span class="tag">UPCOMING</span></div>
+    <div class="card"><div class="n">03</div><h3>Agent Lab</h3><p>Tools · state · context · orchestration</p><span class="tag">UPCOMING</span></div>
+    <div class="card"><div class="n">04</div><h3>Eval &amp; Failure Lab</h3><p>Evals · failures · reliability</p><span class="tag">UPCOMING</span></div>
+    <div class="card"><div class="n">05</div><h3>Research Lab</h3><p>Papers → implementation → experiments</p><span class="tag on">AVAILABLE</span></div>
+    <div class="card"><div class="n">06</div><h3>Production Lab</h3><p>Containers · deployment · observability</p><span class="tag">UPCOMING</span></div>
+  </div>
+</section>
+
+<section id="research">
+  <div class="two">
+    <div>
+      <p class="eyebrow">Research path</p>
+      <h2>Papers, in an order that makes sense.</h2>
+      <p>Each paper is checked against your prerequisites before it reaches you, then tied to a lab where you implement it.</p>
+      <div class="skill"><span>Attention Is All You Need</span><b>WAIT · 3/4 PREREQS</b></div>
+      <div class="skill"><span>ReAct <small style="color:var(--dim)">→ Agent Lab</small></span><b>QUEUED</b></div>
+      <div class="skill"><span>Learning Representations by Back-Propagating Errors</span><b>UPCOMING</b></div>
+    </div>
+    <div>
+      <p class="eyebrow">Live Intelligence</p>
+      <h2>Signal mapped to your skills.</h2>
+      <p>Relevant developments connect to your active skills instead of becoming another news feed. If nothing matters to what you're learning, the count reads <strong style="color:var(--text)">0 urgent updates</strong>.</p>
+      <p class="eyebrow" style="margin-top:28px">Role targets</p>
+      <div class="skill"><span><strong>OpenAI</strong> · Applied AI / Codex</span></div>
+      <p style="font-size:13.5px;margin:6px 0 12px">Python · debugging · agents · evals · reliability</p>
+      <div class="skill"><span><strong>Basis</strong> · Atlas</span></div>
+      <p style="font-size:13.5px;margin:6px 0 0">Systems · context · agents · knowledge · ownership</p>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="two">
+    <div>
+      <p class="eyebrow">Request a demo</p>
+      <h2>See Mission Control run.</h2>
+      <p>A 20-minute walkthrough of the Mission Control shell, the Skill Graph, and the research path, with room to talk about where v0.2 should go.</p>
+      <p class="note">Submitting opens a pre-filled request on the project's GitHub repository. You can edit it before sending.</p>
+    </div>
+    <form id="demoForm" novalidate>
+      <label>Name<input id="f-name" required autocomplete="name"></label>
+      <label>Email<input id="f-email" type="email" required autocomplete="email"></label>
+      <label>I'm interested as a…
+        <select id="f-role">
+          <option>Learner / career switcher</option>
+          <option>Hiring manager / recruiter</option>
+          <option>Mentor / educator</option>
+          <option>Collaborator / contributor</option>
+        </select>
+      </label>
+      <label>What would you want to see?<textarea id="f-msg" rows="3"></textarea></label>
+      <button class="btn" type="submit">Request demo →</button>
+      <div class="status" id="status" role="status">Opening your pre-filled request…</div>
+    </form>
+  </div>
+</section>
+
+<footer>Applied AI Engineering OS · v0.1 · SEEN → EXPLAIN → BUILD → DEBUG → SHIP</footer>
+</div>
+
+<script>
+(function(){
+  var REPO="https://github.com/0x1Elliot/applied-ai-engineering-os";
+  var DEMO_EMAIL=""; // optional: set to use mailto instead of a GitHub issue
+  var form=document.getElementById("demoForm");
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    var name=document.getElementById("f-name").value.trim();
+    var email=document.getElementById("f-email").value.trim();
+    if(!name||!/^\S+@\S+\.\S+$/.test(email)){
+      (name?document.getElementById("f-email"):document.getElementById("f-name")).focus();
+      return;
+    }
+    var role=document.getElementById("f-role").value;
+    var msg=document.getElementById("f-msg").value.trim();
+    var title="Demo request: "+name;
+    var body="Name: "+name+"\nEmail: "+email+"\nInterested as: "+role+"\n\nWhat I'd like to see:\n"+(msg||"(not specified)");
+    document.getElementById("status").style.display="block";
+    var url=DEMO_EMAIL
+      ? "mailto:"+DEMO_EMAIL+"?subject="+encodeURIComponent(title)+"&body="+encodeURIComponent(body)
+      : REPO+"/issues/new?title="+encodeURIComponent(title)+"&body="+encodeURIComponent(body);
+    window.open(url,"_blank","noopener");
+  });
+})();
+</script>
+</body>
+</html>
