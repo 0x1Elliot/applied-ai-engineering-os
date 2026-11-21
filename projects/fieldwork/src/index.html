@@ -2,7 +2,20 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f4f1;color:#1b2a26;font:16px/1.55 "DM Sans",system-ui,sans-serif}header{background:#183e35;color:#fff;padding:15px max(5vw,18px);display:flex;align-items:center;justify-content:space-between;gap:20px}header b{font:600 1.65rem Georgia,serif}header span{color:#cce6da;font-size:.88rem}a{color:#245c4d;text-underline-offset:3px}header a{color:white}main{max-width:1150px;margin:32px auto;padding:0 20px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:38px}aside h2,.label{font-size:.83rem;text-transform:uppercase;letter-spacing:.08em;color:#4e655c}nav{display:grid;gap:5px}button,textarea{font:inherit}button{cursor:pointer}nav button{background:transparent;text-align:left;border:0;border-radius:7px;padding:11px 12px;color:inherit;display:flex;align-items:center;gap:10px}nav button[aria-current=true]{background:#dbe7df;font-weight:650}.dot{width:11px;height:11px;background:var(--tone);border-radius:3px;flex:none}.hero{background:var(--hero,#173e33);color:#fff;padding:28px 32px;border-radius:15px}.hero small{color:#fff;opacity:.85}h1{font:normal clamp(2.1rem,5vw,3.5rem)/1.06 Georgia,serif;margin:12px 0}.hero p{margin:8px 0 0;max-width:55ch}article,.empty{background:#fff;padding:22px 26px;border:1px solid #d5dfd7;border-radius:12px;margin-top:15px}article h2{font:normal 1.6rem/1.2 Georgia,serif;margin:8px 0}article p{margin:8px 0}small{font-size:.84rem;color:#4e625a}.btn{background:white;color:#214c3d;border:1px solid #a7b8ad;border-radius:7px;padding:8px 14px;margin:8px 5px 2px 0}.primary{background:#214c3d;color:white}.content{overflow-wrap:anywhere}.content p{white-space:pre-wrap;margin:12px 0}.content h3{font-weight:650;font-size:1.1rem;margin:20px 0 6px}.content pre{white-space:pre-wrap;background:#eff4f1;padding:12px}textarea{width:100%;min-height:105px;display:block;margin:6px 0;padding:12px;border:1px solid #a9beb0;border-radius:8px}a,button,textarea{outline-offset:3px}.notice{color:#633e1b}.entryhead{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}.entryhead small:first-child{border-left:4px solid var(--tone);padding-left:8px}footer{margin:24px 0} .noteform{border-top:1px solid #d5dfd7;margin-top:18px;padding-top:16px}
 @media(max-width:720px){main{display:block;margin:16px auto;padding:0 12px}nav{display:flex;overflow-x:auto;padding-bottom:8px}nav button{white-space:nowrap}aside h2{margin:0 0 6px}.hero{margin-top:8px;padding:20px}article{padding:18px}header span{display:none}}
-</style><header><div><b>Fieldwork</b> <span>/ Applied AI</span></div><a href="https://github.com/0x1Elliot/applied-ai-engineering-os/tree/feature/fieldwork-research-feed/projects/fieldwork" target="_blank" rel="noopener">Open GitHub</a></header><main><aside><h2>Research windows</h2><nav aria-label="Select a window"></nav></aside><section><div class="hero"><small id="cadence"></small><h1></h1><p id="intro"></p></div><div id="feed" aria-live="polite"></div><footer></footer></section></main>
+
+aside{position:sticky;top:1rem;align-self:start}
+#menu-open{display:none}
+#mobile-menu{margin:0;height:100dvh;max-height:100dvh;width:min(310px,90vw);padding:16px;border:0;background:#f3f4f1;color:inherit}
+#mobile-menu::backdrop{background:#102a2580}
+.menu-head{display:flex;align-items:center;justify-content:space-between}
+nav a{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:6px;text-decoration:none;color:inherit}
+nav a[aria-current=page]{background:#dbe7df;font-weight:650}
+#guide{border-bottom:1px solid #c7d5cd;padding:12px 3px}summary{cursor:pointer;font-weight:600;width:fit-content}
+#guide dl{display:grid;grid-template-columns:max-content 1fr;gap:8px 16px;margin:14px 0}
+#guide dt{font-weight:600}#guide dd{margin:0}
+.resource{display:block;padding:12px 0}.resource span{display:block;color:#4e625a}
+@media(max-width:720px){main>aside{display:none}#menu-open{display:inline-block}nav{display:grid;overflow:visible}header{gap:8px}#guide dl{display:block}#guide dd{margin-bottom:8px}}
+</style><header><button id="menu-open" class="btn" aria-haspopup="dialog" aria-controls="mobile-menu">Menu</button><div><b>Fieldwork</b> <span>/ Applied AI</span></div><a href="https://github.com/0x1Elliot/applied-ai-engineering-os/tree/feature/fieldwork-research-feed/projects/fieldwork" target="_blank" rel="noopener">Open GitHub</a></header><dialog id="mobile-menu" aria-label="Windows"><div class="menu-head"><h2>Windows</h2><button id="close-menu" class="btn">Close</button></div><div id="mobile-nav"></div></dialog><main><aside><h2>Research windows</h2><nav aria-label="Select a window"></nav></aside><section><div class="hero"><small id="cadence"></small><h1 tabindex="-1"></h1><p id="intro"></p></div><details id="guide"><summary>About this window</summary><dl><dt>Inside</dt><dd id="inside"></dd><dt>Purpose</dt><dd id="purpose"></dd><dt>Who it’s for</dt><dd id="audience"></dd></dl></details><div id="feed" aria-live="polite"></div><footer></footer></section></main>
 <script>
 const rooms={
  all:['Research feed','All schedules · New York time','Your lessons, research and engineering practice in one timeline.','#173e33','Open post','Field notes'],
@@ -11,10 +24,36 @@ const rooms={
  skills:['SKILLs','Weekdays · 10 AM','One hour in the lab. Bring a failing case, a working fix and proof.','#78451e','Enter practice','My attempt, test result and demo link'],
  news:['AI news briefing','Daily · 8 AM','Five developments. Follow the primary sources and decide what deserves an experiment.','#26596a','Read briefing','Source worth following and why'],
  agents:['Multi-agent brief','Fridays · 9 AM','Inspect the handoff, the failure mode and the evidence behind the claim.','#4b4782','Review evidence','Hypothesis and reproduction notes'],
+ links:['Links','Research resources','Find a talk, read a paper, or explore a startup problem.','#33596b'],
  desk:['Maintenance desk','Daily sweep · 8 AM','Review proposed fixes and their evidence. Approve individual changes through GitHub.','#4a5146','Inspect report','Review notes']
 };
 const $=s=>document.querySelector(s), el=(tag,txt)=>{const x=document.createElement(tag);if(txt!=null)x.textContent=txt;return x};
 const action=(label,fn)=>{const b=el('button',label);b.type='button';b.className='btn';b.onclick=fn;return b};
+const guides={
+ all:['Posts from every scheduled window, ordered by date.','Find your next read or practice session.','Elliot planning his engineering day.'],
+ course:['Sequential lessons, build challenges and knowledge checks.','Practice a concept and explain how it behaves in production.','An engineer developing backend and applied AI fundamentals.'],
+ socratic:['One question, space for an argument and a counterexample.','Surface assumptions before making a product or architecture decision.','Builders who want to sharpen independent judgment.'],
+ skills:['A timed exercise, test target and place to record your demo.','Build evidence that you can implement and verify a solution.','An engineer practicing Python, ML, agents or software engineering.'],
+ news:['Five research, engineering, startup and healthcare AI stories per briefing.','Trace a claim back to its source and decide what merits investigation.','Engineers tracking developments relevant to their work.'],
+ agents:['Papers and firsthand analyses of orchestration, handoffs and recovery.','Turn research findings into a concrete engineering test.','Engineers building or evaluating multi-agent systems.'],
+ desk:['Maintenance findings, evidence and proposed changes.','Decide which fixes or features to approve.','The person maintaining and reviewing Fieldwork.'],
+ links:['HackerTube, arXiv and two YC Official destinations.','Go directly to source material for research and product discovery.','Builders looking for technical talks, papers and startup ideas.']
+};
+function renderLinks(feed){
+ const groups=[
+ ['Research',[['Andrej Karpathy’s HackerTube','https://hackertube.org/','Find technical videos shared on Hacker News.'],['arXiv','https://arxiv.org/','Search research preprints by title, author or topic.']]],
+ ['YC Official',[['Hacker News','https://news.ycombinator.com/','Read and discuss technology stories.'],['Requests for Startups','https://www.ycombinator.com/rfs','Explore problems Y Combinator wants founders to tackle.']]]
+ ];
+ for(const [title,links] of groups){
+  const group=el('article');group.append(el('h2',title));
+  for(const [name,url,description] of links){
+   const row=el('div'),link=el('a',name);row.className='resource';
+   link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+   row.append(link,el('span',description));group.append(row);
+  }
+  feed.append(group);
+ }
+}
 let generation=0;
 async function api(route,payload){const r=await fetch(route,payload?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}:{});if(!r.ok)throw Error('Request failed ('+r.status+')');return r.json()}
 function inline(node,line){const re=/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|https?:\/\/[^\s<>]+|\*\*([^*]+)\*\*/g;let end=0;for(const m of line.matchAll(re)){node.append(line.slice(end,m.index));if(m[3])node.append(el('strong',m[3]));else{const link=el('a',m[1]||m[0]);link.href=m[2]||m[0];link.target='_blank';link.rel='noopener noreferrer';node.append(link)}end=m.index+m[0].length}node.append(line.slice(end))}
@@ -22,7 +61,21 @@ function renderText(body){const block=el('div');block.className='content';let co
 function card(post){const room=rooms[post.room],a=el('article'),row=el('div');a.style.setProperty('--tone',room[3]);row.className='entryhead';row.append(el('small',room[0]),el('small',post.date+(post.excerpt?' · Archived excerpt':'')));a.append(row,el('h2',post.title));const summary=post.body.split('\n').find(l=>l.trim().length>45&&!l.startsWith('#'))||'';const snip=el('p',summary.replace(/\*\*/g,'').slice(0,200)+(summary.length>200?'…':''));a.append(snip);
  const detail=el('div');detail.hidden=true;const toggle=action(room[4],async()=>{detail.hidden=!detail.hidden;snip.hidden=!detail.hidden;toggle.textContent=detail.hidden?room[4]:'Close post';toggle.setAttribute('aria-expanded',String(!detail.hidden));if(detail.hidden||detail.childNodes.length)return;detail.append(renderText(post.body));const form=el('div');form.className='noteform';detail.append(form);
  const load=async()=>{form.replaceChildren();try{const path='/api/notebook?id='+encodeURIComponent(post.id),state=await api(path);const label=el('label',room[5]),note=el('textarea'),saved=el('input');note.maxLength=30000;note.value=state.note;label.append(note);saved.type='checkbox';saved.checked=state.saved;const mark=el('label');mark.append(saved,' Bookmark this post');const msg=el('small');msg.setAttribute('role','status');const save=action('Save to notebook',async()=>{save.disabled=true;try{await api(path,{note:note.value,saved:saved.checked});msg.textContent='Saved'}catch{msg.textContent='Could not save. Your draft is still here.'}finally{save.disabled=false}});form.append(label,mark,el('br'),save,msg)}catch{form.append(el('p','Notebook unavailable.'),action('Retry notebook',load))}};await load()});toggle.setAttribute('aria-expanded','false');a.append(toggle,detail);return a}
-async function show(){const key=location.hash.slice(1),id=Object.hasOwn(rooms,key)?key:'all',room=rooms[id],version=++generation;document.querySelectorAll('nav button').forEach(b=>b.setAttribute('aria-current',String(b.dataset.room===id)));$('.hero').style.setProperty('--hero',room[3]);$('h1').textContent=room[0];$('#cadence').textContent=room[1];$('#intro').textContent=room[2];const feed=$('#feed'),foot=$('footer');feed.replaceChildren();foot.textContent='Loading posts…';
+async function show(){const key=location.hash.slice(1),id=Object.hasOwn(rooms,key)?key:'all',room=rooms[id],version=++generation;document.querySelectorAll('nav a').forEach(a=>a.setAttribute('aria-current',a.dataset.room===id?'page':'false'));$('.hero').style.setProperty('--hero',room[3]);$('h1').textContent=room[0];$('#cadence').textContent=room[1];$('#intro').textContent=room[2];const feed=$('#feed'),foot=$('footer');feed.replaceChildren();$('#guide').open=false;
+ [$('#inside'),$('#purpose'),$('#audience')].forEach((node,i)=>node.textContent=guides[id][i]);
+ if(id==='links'){foot.replaceChildren();renderLinks(feed);return}
+ foot.textContent='Loading posts…';
  async function more(cursor=''){try{const data=await api('/api/feed?room='+(id==='all'?'':id)+'&before='+encodeURIComponent(cursor));if(version!==generation)return;foot.replaceChildren();for(const item of data.posts)feed.append(card(item));if(!feed.children.length){const empty=el('div','The first published post will appear here.');empty.className='empty';feed.append(empty)}if(data.next)foot.append(action('Older posts',e=>{e.target.disabled=true;more(data.next)}))}catch{if(version!==generation)return;foot.replaceChildren(el('span','Could not load posts. '),action('Retry',()=>more(cursor)))}}await more()}
-for(const [key,r] of Object.entries(rooms)){const b=action('',()=>{location.hash=key});b.className='';const mark=el('i');mark.className='dot';mark.style.setProperty('--tone',r[3]);b.append(mark,r[0]);b.dataset.room=key;$('nav').append(b)}window.addEventListener('hashchange',show);show();
+const nav=$('nav'),sidebar=$('aside'),drawer=$('#mobile-menu'),opener=$('#menu-open');
+for(const [key,room] of Object.entries(rooms)){
+ const link=el('a'),mark=el('i');mark.className='dot';mark.style.setProperty('--tone',room[3]);
+ link.href='#'+key;link.dataset.room=key;link.append(mark,room[0]);nav.append(link);
+}
+opener.onclick=()=>{$('#mobile-nav').append(nav);drawer.showModal();nav.querySelector('[aria-current=page]')?.focus()};
+$('#close-menu').onclick=()=>drawer.close();
+drawer.addEventListener('close',()=>sidebar.append(nav));
+drawer.addEventListener('click',event=>{if(event.target===drawer && event.clientX>drawer.getBoundingClientRect().right)drawer.close()});
+nav.addEventListener('click',event=>{if(event.target.closest('a')&&drawer.open)drawer.close()});
+matchMedia('(min-width:721px)').addEventListener('change',e=>{if(e.matches&&drawer.open)drawer.close()});
+window.addEventListener('hashchange',()=>{show();$('h1').focus()});show();
 </script></html>
