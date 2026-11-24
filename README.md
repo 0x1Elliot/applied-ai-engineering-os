@@ -13,3 +13,5 @@ npm run dev
 
 ## Progression
 SEEN → EXPLAIN → BUILD → DEBUG → SHIP
+
+<!-- Mandatory PR review gate test (2026-11-24): harmless documentation-only marker. -->
